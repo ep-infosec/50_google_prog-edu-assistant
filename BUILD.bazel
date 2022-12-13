@@ -1,0 +1,36 @@
+filegroup(
+    name = "all_files",
+    testonly = True,
+    srcs = [
+        ".gitignore",
+        ".travis.yml",
+        "CONTRIBUTING.md",
+        "DEVELOPING.md",
+        "LICENSE",
+        "NOTES.md",
+        "README.md",
+        "SETUP.md",
+        "WORKSPACE",
+        "build-student.sh",
+        "push-student.sh",
+        "rebuild-no-blaze.sh",
+        "requirements.txt",
+        "start-local-combined.sh",
+        "start-server-no-queue.sh",
+        "//autograder:all_files",
+        "//deploy:all_files",
+        "//docker:all_files",
+        "//exercises:all_files",
+        "//go:all_files",
+        "//nbextensions:all_files",
+        "//python:all_files",
+        "//static:all_files",
+        "//student:all_files",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/google/prog-edu-assistant
+gazelle(name = "gazelle")

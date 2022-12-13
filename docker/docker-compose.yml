@@ -1,0 +1,33 @@
+version: '2'
+services:
+  rabbitmq:
+    image: rabbitmq
+  web:
+    ports:
+      - "8000:8000"
+    image: server:latest
+    volumes:
+      # Use the externally mounted volume for logs.
+      - /tmp/autograder/uploads:/logs
+    entrypoint: ['/usr/local/bin/uploadserver', '-port', '8000', '-upload_dir', '/logs', '-logtostderr', '-v', '3', '-queue_spec', 'amqp://guest:guest@rabbitmq:5672/', '-allow_cors', '-use_openid', '-openid_issuer', '', '-static_dir', '/static']
+    env_file:
+      # ./secret.env should define the follwing variables (note: values should not use quotes)
+      #CLIENT_ID=<an OAuth2 client ID obtained from the Open ID Connect provider>
+      #CLIENT_SECRET=<an OAuth2 client secret obtained from the Open ID Connect provider>
+      #COOKIE_AUTH_KEY=<random string of 16 characters>
+      #COOKIE_ENCRYPT_KEY=<random string of 16 or 32 characters>
+      - secret.env
+    read_only: true
+    tmpfs: /tmp
+    #image: bazel/go/cmd/uploadserver:docker
+    #entrypoint: ['/app/go/cmd/uploadserver/docker.binary.runfiles/__main__/go/cmd/uploadserver/linux_amd64_stripped/docker.binary', '-logtostderr', '-v', '3', '-queue_spec', 'amqp://guest:guest@rabbitmq:5672/', '-allow_cors', '-upload_dir', '/tmp']
+  worker:
+    image: worker:latest
+    volumes:
+      # Use the externally mounted volume for scratch.
+      - /tmp/autograder/scratch:/scratch
+    entrypoint: ['/usr/local/bin/worker', '-scratch_dir', '/scratch', '-autograder_dir', '/autograder', '-logtostderr', '-v', '5', '-queue_spec', 'amqp://guest:guest@rabbitmq:5672/', '-python_path', '/usr/bin/python', '-disable_cleanup', '-auto_remove']
+    tmpfs: /tmp
+    read_only: true
+    #image: bazel/go/cmd/worker:docker
+    #entrypoint: ['/app/go/cmd/worker/docker.binary.runfiles/__main__/go/cmd/worker/linux_amd64_stripped/docker.binary', '-logtostderr', '-v', '3', '-queue_spec', 'amqp://guest:guest@rabbitmq:5672/', '-autograder_dir', '/autograder']
